@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 import entity.HoaDon;
 import usecase.delete.DeleteDDatabaseBoundary;
 import usecase.edit.EditHDDatabaseBoundary;
@@ -16,52 +15,67 @@ import usecase.search.SearchHDDatabaseBoundary;
 import usecase.add.AddHDDatabaseBoundary;
 
 public class HDDAOMemory implements AddHDDatabaseBoundary, DeleteDDatabaseBoundary, EditHDDatabaseBoundary, SearchHDDatabaseBoundary {
-    private Map<Integer, HoaDon> mockDatabase = new HashMap<>();
-    private int currentHDID = 0;
-    private Connection connection;
-    
+    private final Map<Integer, HoaDon> mockDatabase;
+    private int currentHDID;
+    private final Connection connection;
 
-public void HoaDonDAOMemory() {
-        // Kết nối đến cơ sở dữ liệu
+    public HDDAOMemory() {
+        this.mockDatabase = new HashMap<>();
+        this.currentHDID = 0;
         try {
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/quanlykhachsan", "root", "123456789");
+            this.connection = DriverManager.getConnection(
+                "jdbc:mysql://localhost:3306/quanlykhachsan",
+                "root",
+                "123456789"
+            );
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Không thể kết nối đến cơ sở dữ liệu", e);
         }
     }
 
     @Override
     public int addHoadon(HoaDon hoaDon) {
-        mockDatabase.put(++currentHDID, hoaDon);
-        return currentHDID;
+        if (hoaDon == null) {
+            throw new IllegalArgumentException("Hóa đơn không được null");
+        }
+        if (mockDatabase.containsKey(hoaDon.getMaHD())) {
+            throw new IllegalArgumentException("Hóa đơn với mã " + hoaDon.getMaHD() + " đã tồn tại");
+        }
+        mockDatabase.put(hoaDon.getMaHD(), hoaDon);
+        return hoaDon.getMaHD();
     }
 
     @Override
     public HoaDon findHoaDonById(int id) {
-    HoaDon hoaDon = mockDatabase.get(id);
-    if (hoaDon == null) {
-        
+        HoaDon hoaDon = mockDatabase.get(id);
+        if (hoaDon == null) {
+            throw new IllegalArgumentException("Không tìm thấy hóa đơn với mã: " + id);
+        }
+        return hoaDon;
     }
-    return hoaDon;
-}
-
 
     @Override
     public boolean deleteHoadon(int maHD) {
-        if (mockDatabase.containsKey(maHD)) {
-            mockDatabase.remove(maHD);
-            return true;
+        if (!mockDatabase.containsKey(maHD)) {
+            throw new IllegalArgumentException("Không tìm thấy hóa đơn với mã: " + maHD);
         }
-        return false;
+        mockDatabase.remove(maHD);
+        return true;
     }
 
     @Override
     public boolean updateHoaDon(int maHD, HoaDon updatedHoaDon) {
-        if (mockDatabase.containsKey(maHD)) {
-            mockDatabase.put(maHD, updatedHoaDon);
-            return true;
+        if (updatedHoaDon == null) {
+            throw new IllegalArgumentException("Hóa đơn cập nhật không được null");
         }
-        return false;
+        if (!mockDatabase.containsKey(maHD)) {
+            throw new IllegalArgumentException("Không tìm thấy hóa đơn với mã: " + maHD);
+        }
+        if (maHD != updatedHoaDon.getMaHD()) {
+            throw new IllegalArgumentException("Mã hóa đơn không khớp");
+        }
+        mockDatabase.put(maHD, updatedHoaDon);
+        return true;
     }
 
     @Override
@@ -69,6 +83,19 @@ public void HoaDonDAOMemory() {
         return new ArrayList<>(mockDatabase.values());
     }
 
-    
+    public void closeConnection() {
+        if (connection != null) {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                throw new RuntimeException("Không thể đóng kết nối đến cơ sở dữ liệu", e);
+            }
+        }
+    }
 
+    @Override
+    protected void finalize() throws Throwable {
+        closeConnection();
+        super.finalize();
+    }
 }

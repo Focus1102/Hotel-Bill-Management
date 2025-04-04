@@ -26,11 +26,12 @@ public class QuanLyHoaDon extends JFrame {
     private DefaultTableModel tableModel;
     private JPanel tablePanel;
     private JButton addButton, deleteButton, editButton, searchButton;
+    private HDController controller;
     ArrayList<HoaDon> hoaDons;
 
     public QuanLyHoaDon() {
         setTitle("Quản Lý Hóa Đơn");
-        setSize(600, 400);
+        setSize(800, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
@@ -39,8 +40,15 @@ public class QuanLyHoaDon extends JFrame {
         hoaDons = new ArrayList<>();
 
         // Bảng hiển thị hóa đơn
-        tableModel = new DefaultTableModel(new String[]{"Mã HĐ", "Họ Tên", "Ngày HĐ", "Loại HĐ", "Thanh Tiền"}, 0);
+        String[] columnNames = {"Mã HĐ", "Họ Tên", "Ngày HĐ", "Loại HĐ", "Đơn Giá", "Số Giờ/Ngày", "Thành Tiền"};
+        tableModel = new DefaultTableModel(columnNames, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         hoaDonTable = new JTable(tableModel);
+        hoaDonTable.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         tablePanel = new JPanel(new BorderLayout());
         tablePanel.add(new JScrollPane(hoaDonTable), BorderLayout.CENTER);
         add(tablePanel, BorderLayout.CENTER);
@@ -57,31 +65,66 @@ public class QuanLyHoaDon extends JFrame {
         buttonPanel.add(searchButton);
         add(buttonPanel, BorderLayout.SOUTH);
     }
-        public void setController(HDController controller) {
-            // Sử dụng controller trong các nút
-            addButton.addActionListener(e -> new DialogAdd(this, controller).setVisible(true));
-            deleteButton.addActionListener(e -> new DialogDelete(this, controller).setVisible(true));
-            editButton.addActionListener(e -> new DialogEdit(this).setVisible(true));
-            searchButton.addActionListener(e -> new DialogSearch(this, controller).setVisible(true));
-        }
-    
+
+    public void setController(HDController controller) {
+        this.controller = controller;
+        // Sử dụng controller trong các nút
+        addButton.addActionListener(e -> {
+            DialogAdd dialog = new DialogAdd(this, controller);
+            dialog.setVisible(true);
+        });
+        
+        deleteButton.addActionListener(e -> {
+            int selectedRow = hoaDonTable.getSelectedRow();
+            if (selectedRow >= 0) {
+                int maHD = Integer.parseInt(tableModel.getValueAt(selectedRow, 0).toString());
+                DialogDelete dialog = new DialogDelete(this, controller, maHD);
+                dialog.setVisible(true);
+            } else {
+                showMessage("Vui lòng chọn hóa đơn cần xóa!");
+            }
+        });
+        
+        editButton.addActionListener(e -> {
+            int selectedRow = hoaDonTable.getSelectedRow();
+            if (selectedRow >= 0) {
+                int maHD = Integer.parseInt(tableModel.getValueAt(selectedRow, 0).toString());
+                String hoTen = tableModel.getValueAt(selectedRow, 1).toString();
+                Date ngayHD = (Date) tableModel.getValueAt(selectedRow, 2);
+                String loaiHD = tableModel.getValueAt(selectedRow, 3).toString();
+                double donGia = Double.parseDouble(tableModel.getValueAt(selectedRow, 4).toString());
+                int soThue = Integer.parseInt(tableModel.getValueAt(selectedRow, 5).toString());
+                
+                DialogEdit dialog = new DialogEdit(this, controller, maHD, hoTen, ngayHD, loaiHD, donGia, soThue);
+                dialog.setVisible(true);
+            } else {
+                showMessage("Vui lòng chọn hóa đơn cần sửa!");
+            }
+        });
+        
+        searchButton.addActionListener(e -> {
+            DialogSearch dialog = new DialogSearch(this, controller);
+            dialog.setVisible(true);
+        });
+    }
+
     // Phương thức thêm hóa đơn vào bảng
     public void addInvoiceToTable(HDOutputDTO outputDTO) {
         if (outputDTO != null) {
             tableModel.addRow(new Object[]{
-                outputDTO.getmaHD(),
-                outputDTO.gethoTen(),
-                outputDTO.getngayHD(),
-                outputDTO.getkHD(),
-                outputDTO.getdonGia(),
-                outputDTO.getthanhTien()
+                outputDTO.getMaHD(),
+                outputDTO.getHoTen(),
+                outputDTO.getNgayHD(),
+                outputDTO.getKHD().equals("SG") ? "Hóa Đơn Theo Giờ" : "Hóa Đơn Theo Ngày",
+                outputDTO.getDonGia(),
+                outputDTO.getKHD().equals("SG") ? outputDTO.getSoGioThue() : outputDTO.getSoNgayThue(),
+                outputDTO.getThanhTien()
             });
         }
     }
 
     // Phương thức xóa hóa đơn khỏi bảng
     public void removeInvoiceFromTable(int maHD) {
-        // Tìm và xóa dòng tương ứng với mã hóa đơn
         for (int row = 0; row < tableModel.getRowCount(); row++) {
             if (Integer.parseInt(tableModel.getValueAt(row, 0).toString()) == maHD) {
                 tableModel.removeRow(row);
@@ -90,30 +133,9 @@ public class QuanLyHoaDon extends JFrame {
         }
     }
 
-    
     public void clearTable() {
-        tableModel.setRowCount(0); // Xóa tất cả các hàng trong bảng
+        tableModel.setRowCount(0);
     }
-    
-    
-
-    // Phương thức sửa hóa đơn trong bảng
-    public void editHD(int rowIndex, int maHD, String hoTen, Date ngayHD, double donGia, String loaiHD, int soThue) {
-        HoaDon hoaDon;
-        if (loaiHD.equals("SN")) {
-            hoaDon = new HDTheoNgay(maHD, ngayHD, hoTen, donGia, soThue);
-        } else {
-            hoaDon = new HDTheoGio(maHD, ngayHD, hoTen, donGia, soThue);
-        }
-        hoaDons.set(rowIndex, hoaDon);
-        tableModel.setValueAt(maHD, rowIndex, 0);
-        tableModel.setValueAt(hoTen, rowIndex, 1);
-        tableModel.setValueAt(ngayHD, rowIndex, 2);
-        tableModel.setValueAt(loaiHD, rowIndex, 3);
-        tableModel.setValueAt(hoaDon.tinhThanhTien(), rowIndex, 4);
-    }
-
-    
 
     public void showMessage(String message) {
         JOptionPane.showMessageDialog(this, message, "Thông báo", JOptionPane.INFORMATION_MESSAGE);
@@ -121,35 +143,44 @@ public class QuanLyHoaDon extends JFrame {
     
     public void updateInvoiceInTable(HDInputDTO dto) {
         for (int i = 0; i < tableModel.getRowCount(); i++) {
-            if (tableModel.getValueAt(i, 0).equals(dto.getmaHD())) {
-                tableModel.setValueAt(dto.gethoTen(), i, 1);
-                tableModel.setValueAt(dto.getngayHD(), i, 2);
-                tableModel.setValueAt(dto.getkHD().equals("SG") ? "Hóa Đơn Theo Giờ" : "Hóa Đơn Theo Ngày", i, 3);
-                tableModel.setValueAt(dto.getkHD().equals("SG") ? dto.getsoGioThue() : dto.getsoNgayThue(), i, 4);
-                tableModel.setValueAt(dto.getdonGia(), i, 5);
-                tableModel.setValueAt(dto.getthanhTien(), i, 6); // Update total amount here
+            if (Integer.parseInt(tableModel.getValueAt(i, 0).toString()) == dto.getMaHD()) {
+                String loaiHD = dto.getKHD().equals("SG") ? "Hóa Đơn Theo Giờ" : "Hóa Đơn Theo Ngày";
+                String soThue = dto.getKHD().equals("SG") ? 
+                    String.format("%d giờ", dto.getSoGioThue()) : 
+                    String.format("%d ngày", dto.getSoNgayThue());
+                
+                tableModel.setValueAt(dto.getHoTen(), i, 1);
+                tableModel.setValueAt(dto.getNgayHD(), i, 2);
+                tableModel.setValueAt(loaiHD, i, 3);
+                tableModel.setValueAt(String.format("%,.0fđ", dto.getDonGia()), i, 4);
+                tableModel.setValueAt(soThue, i, 5);
+                tableModel.setValueAt(String.format("%,.0fđ", (double)dto.getThanhTien()), i, 6);
                 break;
             }
         }
     }
 
     public void updateSearchResults(List<HDInputDTO> searchResults) {
-        tableModel.setRowCount(0); // Xóa bảng hiện tại
+        tableModel.setRowCount(0);
         for (HDInputDTO dto : searchResults) {
+            String loaiHD = dto.getKHD().equals("SG") ? "Hóa Đơn Theo Giờ" : "Hóa Đơn Theo Ngày";
+            String soThue = dto.getKHD().equals("SG") ? 
+                String.format("%d giờ", dto.getSoGioThue()) : 
+                String.format("%d ngày", dto.getSoNgayThue());
+            
             tableModel.addRow(new Object[]{
-                dto.getmaHD(),
-                dto.gethoTen(),
-                dto.getngayHD(),
-                dto.getkHD().equals("SG") ? "Hóa Đơn Theo Giờ" : "Hóa Đơn Theo Ngày",
-                dto.getdonGia(),
-                dto.getthanhTien()
+                dto.getMaHD(),
+                dto.getHoTen(),
+                dto.getNgayHD(),
+                loaiHD,
+                dto.getDonGia(),
+                soThue,
+                dto.getThanhTien()
             });
         }
     }
-	public void setAddHDController(HDController addHDController) {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("Unimplemented method 'setAddHDController'");
-	}
-   
-    
+
+    public HDController getController() {
+        return controller;
+    }
 }

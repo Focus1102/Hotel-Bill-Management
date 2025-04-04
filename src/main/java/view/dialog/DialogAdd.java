@@ -97,25 +97,50 @@ public class DialogAdd extends JDialog {
     private void addHoaDon() {
         try {
             // Thu thập dữ liệu từ giao diện
-            String maHD = maHDField.getText();
-            String hoTen = hoTenField.getText();
-            String ngayThueStr = ngayHDField.getText();
-            String donGiaStr = donGiaField.getText();
-            String soThueStr = soThueField.getText();
+            String maHD = maHDField.getText().trim();
+            String hoTen = hoTenField.getText().trim();
+            String ngayThueStr = ngayHDField.getText().trim();
+            String donGiaStr = donGiaField.getText().trim();
+            String soThueStr = soThueField.getText().trim();
             boolean isHourBased = "Theo Giờ".equals(loaiHDComboBox.getSelectedItem());
+
+            // Kiểm tra các trường bắt buộc
+            if (maHD.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Vui lòng nhập mã hóa đơn!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (hoTen.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Vui lòng nhập họ tên!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (ngayThueStr.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Vui lòng nhập ngày hóa đơn!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (donGiaStr.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Vui lòng nhập đơn giá!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (soThueStr.isEmpty()) {
+                JOptionPane.showMessageDialog(this, "Vui lòng nhập số giờ/ngày!", "Lỗi", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
     
+            // Kiểm tra định dạng ngày tháng
             SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+            dateFormat.setLenient(false); // Không cho phép ngày không hợp lệ
             Date ngayThue = dateFormat.parse(ngayThueStr);
     
             // Gọi Controller để thực hiện logic
             addHDController.addHoaDon(maHD, hoTen, ngayThue, isHourBased, soThueStr, donGiaStr);
-    
-        } catch (ParseException e) {
-            JOptionPane.showMessageDialog(this, "Ngày không hợp lệ. Định dạng: dd/MM/yyyy", "Lỗi", JOptionPane.ERROR_MESSAGE);
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Có lỗi xảy ra: " + e.getMessage(), "Lỗi", JOptionPane.ERROR_MESSAGE);
+            dispose();
+        } catch (ParseException ex) {
+            JOptionPane.showMessageDialog(this, "Ngày hóa đơn không hợp lệ!\nVui lòng nhập theo định dạng dd/MM/yyyy", 
+                "Lỗi", JOptionPane.ERROR_MESSAGE);
+        } catch (IllegalArgumentException ex) {
+            JOptionPane.showMessageDialog(this, ex.getMessage(), 
+                "Lỗi", JOptionPane.ERROR_MESSAGE);
         }
-         setVisible(false);
     }
 
   

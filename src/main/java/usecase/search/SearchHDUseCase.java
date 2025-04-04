@@ -1,44 +1,47 @@
 package usecase.search;
 
+import database.HDDAOMemory;
 import dto.HDInputDTO;
+import entity.HoaDon;
 import entity.HDTheoGio;
 import entity.HDTheoNgay;
-import entity.HoaDon;
-
-import java.util.ArrayList;
 import java.util.List;
 
-
 public class SearchHDUseCase implements SearchHDInputBoundary {
-    private final SearchHDDatabaseBoundary searchHDDBB;
-    private final SearchHDOutputBoundary presenter;
+    private final SearchHDDatabaseBoundary database;
+    private final SearchHDOutputBoundary output;
 
-    public SearchHDUseCase(SearchHDDatabaseBoundary searchHDDBB, SearchHDOutputBoundary presenter) {
-        this.searchHDDBB = searchHDDBB;
-        this.presenter = presenter;
+    public SearchHDUseCase(HDDAOMemory hdDatabase, SearchHDOutputBoundary output) {
+        this.database = (SearchHDDatabaseBoundary) hdDatabase;
+        this.output = output;
     }
 
     @Override
     public void searchById(int maHD) {
-    HoaDon hoaDon = searchHDDBB.findHoaDonById(maHD);
-    List<HDInputDTO> resultList = new ArrayList<>();
-    if (hoaDon != null) {
-        resultList.add(new HDInputDTO(
-            hoaDon.getmaHD(),
-            hoaDon.getngayHD(),
-            hoaDon.gethoTen(),
-            hoaDon instanceof HDTheoGio ? "SG" : "NG",
-            hoaDon.donGia(),
-            hoaDon instanceof HDTheoGio ? ((HDTheoGio) hoaDon).getSoGioThue() : 0,
-            hoaDon instanceof HDTheoNgay ? ((HDTheoNgay) hoaDon).getSoNgayThue() : 0,
-            hoaDon.tinhThanhTien()
-        ));
+        try {
+            HoaDon hoaDon = database.findHoaDonById(maHD);
+            if (hoaDon != null) {
+                HDInputDTO dto = new HDInputDTO(
+                    hoaDon.getMaHD(),
+                    hoaDon.getNgayHD(),
+                    hoaDon.getHoTen(),
+                    hoaDon.getKHD(),
+                    hoaDon.getDonGia(),
+                    hoaDon instanceof HDTheoGio ? ((HDTheoGio)hoaDon).getSoGioThue() : 0,
+                    hoaDon instanceof HDTheoNgay ? ((HDTheoNgay)hoaDon).getSoNgayThue() : 0,
+                    hoaDon.tinhThanhTien()
+                );
+                output.tim(List.of(dto));
+            } else {
+                output.tim(List.of());
+            }
+        } catch (Exception e) {
+            output.tim(List.of());
+        }
     }
-    presenter.tim(resultList);
-}
 
-
-
-    
-    
+    @Override
+    public List<HoaDon> getAllInvoices() {
+        return database.getAllInvoices();
+    }
 }

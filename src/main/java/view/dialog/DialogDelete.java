@@ -1,60 +1,45 @@
 package view.dialog;
 
-import java.awt.GridLayout;
-
 import javax.swing.*;
-
+import java.awt.*;
 import view.HDController;
 
 public class DialogDelete extends JDialog {
-    private JButton deleteButton, cancelButton;
-    private JTextField maHDField;
-    private QuanLyHoaDon parent;
-    private HDController deleteHDUseCase;
+    private JButton confirmButton;
+    private JButton cancelButton;
+    private HDController controller;
+    private int maHD;
 
-    public DialogDelete(QuanLyHoaDon parent,HDController deleteHDUseCase) {
-        this.parent = parent;
-        this.deleteHDUseCase = deleteHDUseCase;
-        setTitle("Xóa Hóa Đơn");
-        setSize(400, 200);
+    public DialogDelete(QuanLyHoaDon parent, HDController controller, int maHD) {
+        super(parent, "Xác nhận xóa", true);
+        this.controller = controller;
+        this.maHD = maHD;
+        
+        setLayout(new BorderLayout());
+        setSize(300, 150);
         setLocationRelativeTo(parent);
-        setModal(true);
 
-        setLayout(new GridLayout(3, 2));
+        // Panel chứa thông báo
+        JPanel messagePanel = new JPanel();
+        messagePanel.add(new JLabel("Bạn có chắc chắn muốn xóa hóa đơn này?"));
+        add(messagePanel, BorderLayout.CENTER);
 
-        // Mã HĐ
-        add(new JLabel("Mã HĐ:"));
-        maHDField = new JTextField();
-        add(maHDField);
-
-        // Nút xóa và hủy
-        deleteButton = new JButton("Xóa");
+        // Panel chứa các nút
+        JPanel buttonPanel = new JPanel();
+        confirmButton = new JButton("Xác nhận");
         cancelButton = new JButton("Hủy");
+        buttonPanel.add(confirmButton);
+        buttonPanel.add(cancelButton);
+        add(buttonPanel, BorderLayout.SOUTH);
 
-        deleteButton.addActionListener(e -> deleteHoaDon());
-        cancelButton.addActionListener(e -> setVisible(false));
+        // Xử lý sự kiện
+        confirmButton.addActionListener(e -> {
+            controller.deleteHoaDon(maHD);
+            dispose();
+        });
 
-        add(deleteButton);
-        add(cancelButton);
+        cancelButton.addActionListener(e -> dispose());
     }
-
-    private void deleteHoaDon() {
-        String maHDText = maHDField.getText(); 
-        if (maHDText != null && !maHDText.trim().isEmpty()) { 
-            try {
-                int maHD = Integer.parseInt(maHDText.trim()); 
-                deleteHDUseCase.deleteHoaDon(maHD); // Gửi yêu cầu qua Controller
-                parent.removeInvoiceFromTable(maHD);
-            } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(this, "Mã HĐ phải là số hợp lệ!", "Lỗi", JOptionPane.ERROR_MESSAGE);
-            }
-        } else {
-            JOptionPane.showMessageDialog(this, "Vui lòng nhập Mã HĐ!", "Thông báo", JOptionPane.WARNING_MESSAGE);
-        }
-         setVisible(false);
-    }
-    
-    
 }
 
 

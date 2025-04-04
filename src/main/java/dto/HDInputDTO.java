@@ -3,90 +3,83 @@ package dto;
 import java.util.Date;
 
 public class HDInputDTO {
+    private final int maHD;
+    private final Date ngayHD;
+    private final String hoTen;
+    private final String kHD;
+    private final double donGia;
+    private final int soGioThue;
+    private final int soNgayThue;
+    private final int thanhTien;
 
-    protected int maHD;
-    protected Date ngayHD;
-    protected String hoTen;
-    protected String kHD;
-    protected double donGia;
-    private double thanhTien;
+    public HDInputDTO(int maHD, Date ngayHD, String hoTen, String kHD, double donGia, int soGioThue, int soNgayThue, int thanhTien) {
+        if (maHD <= 0) {
+            throw new IllegalArgumentException("Mã hóa đơn phải lớn hơn 0");
+        }
+        if (ngayHD == null) {
+            throw new IllegalArgumentException("Ngày hóa đơn không được null");
+        }
+        if (hoTen == null || hoTen.trim().isEmpty()) {
+            throw new IllegalArgumentException("Họ tên không được để trống");
+        }
+        if (kHD == null || (!kHD.equals("SG") && !kHD.equals("NG"))) {
+            throw new IllegalArgumentException("Loại hóa đơn không hợp lệ");
+        }
+        if (donGia <= 0) {
+            throw new IllegalArgumentException("Đơn giá phải lớn hơn 0");
+        }
+        if (kHD.equals("SG") && soGioThue <= 0) {
+            throw new IllegalArgumentException("Số giờ thuê phải lớn hơn 0");
+        }
+        if (kHD.equals("NG") && soNgayThue <= 0) {
+            throw new IllegalArgumentException("Số ngày thuê phải lớn hơn 0");
+        }
 
-    private int soGioThue;
-    private int soNgayThue;
-    
-
-    public HDInputDTO(int maHD, Date ngayHD, String hoTen,String kHD, double donGia,double thanhTien){
         this.maHD = maHD;
         this.ngayHD = ngayHD;
-        this.hoTen = hoTen;
+        this.hoTen = hoTen.trim();
         this.kHD = kHD;
         this.donGia = donGia;
-        this.thanhTien = thanhTien;
-    }
-    public HDInputDTO(int maHD, Date ngayHD, String hoTen,String kHD, double donGia,double thanhTien, int soGioThue, int soNgayThue){
-        this(maHD,ngayHD,hoTen,kHD,donGia, thanhTien);
         this.soGioThue = soGioThue;
         this.soNgayThue = soNgayThue;
-    }
-
-  
-    public int getmaHD(){
-        return maHD;
-    }
-    public void setmaHD(int maHD){
-        this.maHD = maHD;
-    }
-
-    public Date getngayHD(){
-        return ngayHD;
-    }
-    public void setngayHD(Date ngayHD){
-        this.ngayHD = ngayHD;
-    }
-
-    public String gethoTen(){
-        return hoTen;
-    }
-    public void sethoTen(String hoTen){
-        this.hoTen = hoTen;
-    }
-
-    public String getkHD(){
-        return kHD;
-    }
-    public void setkHD(String kHD){
-        this.kHD = kHD;
-    }
-
-
-    public double getdonGia(){
-        return donGia;
-    }
-    public void setdonGia(double donGia){
-        this.donGia = donGia;
-    }
-
-    public double getthanhTien(){
-        return thanhTien;
-    }
-    public void setthanhTien(double thanhTien){
         this.thanhTien = thanhTien;
     }
 
-    public int getsoGioThue(){
-        return soGioThue;
-    }
-    public void setsoGioThue(int soGioThue){
-        this.soGioThue = soGioThue;
+    public int getMaHD() {
+        return maHD;
     }
 
-    public int getsoNgayThue(){
+    public Date getNgayHD() {
+        return ngayHD;
+    }
+
+    public String getHoTen() {
+        return hoTen;
+    }
+
+    public String getKHD() {
+        return kHD;
+    }
+
+    public double getDonGia() {
+        return donGia;
+    }
+
+    public int getSoGioThue() {
+        return soGioThue;
+    }
+
+    public int getSoNgayThue() {
         return soNgayThue;
     }
 
-    public void setsoNgayThue(int soNgayThue){
-        this.soNgayThue = soNgayThue;
+    public int getThanhTien() {
+        return thanhTien;
     }
-    
-    
+
+    @Override
+    public String toString() {
+        return String.format("Hóa đơn #%d - %s - %s - %.2fđ - %s", 
+            maHD, hoTen, ngayHD, donGia, kHD.equals("SG") ? soGioThue + " giờ" : soNgayThue + " ngày");
+    }
 }

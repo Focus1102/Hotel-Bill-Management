@@ -38,27 +38,29 @@ public class HDPresenter implements AddHDOutputBoundary, DeleteHDOutputBoundary,
 
     @Override
     public void presentEditResult(boolean success, String message, HDInputDTO inputDTO) {
-        
+        if (success) {
+            view.updateInvoiceInTable(inputDTO);
+            JOptionPane.showMessageDialog(view, "Cập nhật hóa đơn thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(view, "Không thể cập nhật hóa đơn: " + message, "Lỗi", JOptionPane.ERROR_MESSAGE);
+        }
     }
 
     @Override
     public void onDeleteSuccess(int maHD) {
-        // Successfully deleted the invoice, now update the table in the view
-        view.removeInvoiceFromTable(maHD);  // Remove the invoice from the table in the view
-        view.showMessage("Xóa hóa đơn thành công!");  // Show success message to the user
+        view.removeInvoiceFromTable(maHD);
+        view.showMessage("Xóa hóa đơn thành công!");
     }
 
     @Override
     public void onDeleteFailure(int maHD, String message) {
-        // Deletion failed, show an error message
-        view.showMessage("Xóa hóa đơn thành công! ");  // Show failure message to the user
+        view.showMessage("Không thể xóa hóa đơn: " + message);
     }
 
 
     @Override
     public void present(HDOutputDTO addHDOutputDTO) {
         if (addHDOutputDTO != null) {
-            // Gọi phương thức của view để thêm vào bảng
             view.addInvoiceToTable(addHDOutputDTO);
             JOptionPane.showMessageDialog(null, "Thêm hóa đơn thành công!", "Thông báo", JOptionPane.INFORMATION_MESSAGE);
         } else {
@@ -68,14 +70,11 @@ public class HDPresenter implements AddHDOutputBoundary, DeleteHDOutputBoundary,
 
     @Override
     public void onSuccess(HDInputDTO hdInputDTO) {
-    // Hiển thị thông báo thành công
-    JOptionPane.showMessageDialog(view, "Hóa đơn đã được thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
-
-}
+        JOptionPane.showMessageDialog(view, "Hóa đơn đã được thêm thành công!", "Thành công", JOptionPane.INFORMATION_MESSAGE);
+    }
 
     public HDOutputDTO getAddHDOutputDTO() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'getAddHDOutputDTO'");
+        return addHDOutputDTO;
     }
 
 }

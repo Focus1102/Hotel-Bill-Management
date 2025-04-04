@@ -17,26 +17,26 @@ public class AddHDUseCase implements AddHDInputBoundary {
 
     @Override
     public HoaDon execute(HDInputDTO hdInputDTO) {
-        if (hdInputDTO.getmaHD() <= 0 || hdInputDTO.getdonGia() < 0 || hdInputDTO.gethoTen().isEmpty()) {
+        if (hdInputDTO.getMaHD() <= 0 || hdInputDTO.getDonGia() < 0 || hdInputDTO.getHoTen().isEmpty()) {
             throw new IllegalArgumentException("Dữ liệu không hợp lệ.");
         }
     
         HoaDon hoaDon;
-        if ("SG".equals(hdInputDTO.getkHD())) {
+        if ("SG".equals(hdInputDTO.getKHD())) {
             hoaDon = new HDTheoGio(
-                hdInputDTO.getmaHD(),
-                hdInputDTO.getngayHD(),
-                hdInputDTO.gethoTen(),
-                hdInputDTO.getdonGia(),
-                hdInputDTO.getsoGioThue()
+                hdInputDTO.getMaHD(),
+                hdInputDTO.getNgayHD(),
+                hdInputDTO.getHoTen(),
+                hdInputDTO.getDonGia(),
+                hdInputDTO.getSoGioThue()
             );
         } else {
             hoaDon = new HDTheoNgay(
-                hdInputDTO.getmaHD(),
-                hdInputDTO.getngayHD(),
-                hdInputDTO.gethoTen(),
-                hdInputDTO.getdonGia(),
-                hdInputDTO.getsoNgayThue()
+                hdInputDTO.getMaHD(),
+                hdInputDTO.getNgayHD(),
+                hdInputDTO.getHoTen(),
+                hdInputDTO.getDonGia(),
+                hdInputDTO.getSoNgayThue()
             );
         }
     
@@ -44,12 +44,14 @@ public class AddHDUseCase implements AddHDInputBoundary {
         addHDDBB.addHoadon(hoaDon);
     
         HDOutputDTO outputDTO = new HDOutputDTO(
-            hoaDon.getmaHD(),
-            hoaDon.getngayHD(),
-            hoaDon.gethoTen(),
-            hoaDon.getkHD(),
-            hoaDon.donGia(),
-            thanhTien
+            hoaDon.getMaHD(),
+            hoaDon.getNgayHD(),
+            hoaDon.getHoTen(),
+            hoaDon.getKHD(),
+            hoaDon.getDonGia(),
+            hoaDon instanceof HDTheoGio ? ((HDTheoGio)hoaDon).getSoGioThue() : 0,
+            hoaDon instanceof HDTheoNgay ? ((HDTheoNgay)hoaDon).getSoNgayThue() : 0,
+            (int)thanhTien
         );
     
         addHDOB.present(outputDTO);

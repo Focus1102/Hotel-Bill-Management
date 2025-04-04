@@ -13,27 +13,47 @@ public class MainQLHD {
 
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
-            // Khởi tạo DAO và Presenter
-            HDDAOMemory daoMemory = new HDDAOMemory();
-            QuanLyHoaDon view = new QuanLyHoaDon(); // Giao diện chính
-
-            // Khởi tạo Presenter với view
-            HDPresenter presenter = new HDPresenter(view);
-
-            // Khởi tạo các UseCase
-            AddHDUseCase addUseCase = new AddHDUseCase(daoMemory, presenter);
-            DeleteHDUseCase deleteUseCase = new DeleteHDUseCase(daoMemory, presenter);
-            EditHDUseCase editUseCase = new EditHDUseCase(daoMemory, presenter);
-            SearchHDUseCase searchUseCase = new SearchHDUseCase(daoMemory, presenter);
-
-            // Khởi tạo Controller với các UseCase
-            HDController controller = new HDController(addUseCase, deleteUseCase, editUseCase, searchUseCase);
-
-            // Gán controller vào view
-            view.setController(controller);
-
-            // Hiển thị giao diện
-            view.setVisible(true);
+            try {
+                // Khởi tạo DAO
+                HDDAOMemory daoMemory = new HDDAOMemory();
+                
+                // Khởi tạo View
+                QuanLyHoaDon view = new QuanLyHoaDon();
+                
+                // Khởi tạo Presenter
+                HDPresenter presenter = new HDPresenter(view);
+                
+                // Khởi tạo các UseCase
+                AddHDUseCase addUseCase = new AddHDUseCase(daoMemory, presenter);
+                DeleteHDUseCase deleteUseCase = new DeleteHDUseCase(daoMemory, presenter);
+                EditHDUseCase editUseCase = new EditHDUseCase(daoMemory, presenter);
+                
+                // Khởi tạo Controller
+                HDController controller = new HDController(addUseCase, deleteUseCase, editUseCase, null);
+                
+                // Khởi tạo SearchUseCase với controller
+                SearchHDUseCase searchUseCase = new SearchHDUseCase(daoMemory, presenter);
+                
+                // Cập nhật controller với searchUseCase
+                controller.setSearchUseCase(searchUseCase);
+                
+                // Gán controller vào view
+                view.setController(controller);
+                
+                // Hiển thị giao diện
+                view.setVisible(true);
+                
+                // Đăng ký shutdown hook để đóng kết nối database
+                Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+                    daoMemory.closeConnection();
+                }));
+            } catch (Exception e) {
+                e.printStackTrace();
+                JOptionPane.showMessageDialog(null, 
+                    "Lỗi khởi tạo ứng dụng: " + e.getMessage(),
+                    "Lỗi",
+                    JOptionPane.ERROR_MESSAGE);
+            }
         });
     }
 }

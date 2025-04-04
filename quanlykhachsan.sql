@@ -3,18 +3,19 @@ CREATE SCHEMA quanlykhachsan CHARACTER SET 'utf8mb4';
 USE quanlykhachsan;
 
 -- Tạo bảng HoaDon
-CREATE TABLE HoaDon (
-    MaHD INT PRIMARY KEY,
-    NgayHD DATE,
-    HoTen NVARCHAR(50),
-    KHD CHAR(2),                        -- Loại khách hàng (SN: theo ngày, SG: theo giờ)
-    DonGia DECIMAL(18, 2),              -- Đơn giá thuê
-    SoNgayThue INT NULL,                -- Số ngày thuê (chỉ áp dụng cho KHD = 'SN')
-    SoGioThue INT NULL                  -- Số giờ thuê (chỉ áp dụng cho KHD = 'SG')
+CREATE TABLE hoadon (
+    maHD INT PRIMARY KEY,
+    ngayHD DATE,
+    hoTen VARCHAR(100),
+    kHD VARCHAR(2),
+    donGia DOUBLE,
+    soGioThue INT,
+    soNgayThue INT,
+    thanhTien DOUBLE
 );
 
 -- Thêm dữ liệu mẫu vào bảng HoaDon
-INSERT INTO HoaDon (MaHD, NgayHD, HoTen, KHD, DonGia, SoNgayThue, SoGioThue) VALUES 
+INSERT INTO HoaDon (MaHD, NgayHD, HoTen, kHD, DonGia, SoNgayThue, SoGioThue) VALUES 
 (1, '2024-11-01', N'Nguyễn Văn A', 'SN', 300000, 5, NULL),
 (2, '2024-11-02', N'Lê Thị B', 'SG', 50000, NULL, 12),
 (3, '2024-11-03', N'Phạm Văn C', 'SN', 400000, 10, NULL),
